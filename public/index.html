@@ -16,7 +16,7 @@
     ];
 
     var table = new Y.DataTable({
-        columns: ["id", "name", "price"],
+        columns: ["id", "name", "price", "cost"],
         data: data,
 
         // Optionally configure your table with a caption
@@ -36,44 +36,52 @@
   <script type="text/javascript">
     YUI().use("datatable", "datasource-io", "datasource-jsonschema", "datatable-datasource", function (Y) {
 
-      var myDataSource = new Y.DataSource.IO({source:"test"}),
-        myCallback = {
-            success: function(e){
-              Y.log(e);
-                alert(e.response);
-            },
-            failure: function(e){
-                alert("Could not retrieve data: " + e.error.message);
-            }
-        };
+      // Set up variable myDataSource the DataSource.IO object with URL being called.
+      // Set up variable myCallback to list success and failure callback functions
+      var myDataSource = new Y.DataSource.IO({source:"test"});
+      var myCallback = { success: function(e){
+                            Y.log(e);
+                            alert(e.response);
+                          },
+                          failure: function(e){
+                            alert("Could not retrieve data: " + e.error.message);
+                        }};
 
-      // var dataSource = new Y.DataSource.Get({
-      //   source: 'http://localhost:4567?'
-      // });
-
-
+      // Use DataSourceJSONSchema plugin to parse the data against the schema I provided
       myDataSource.plug(Y.Plugin.DataSourceJSONSchema, {
         schema: {
           resultListLocator: "query",
           resultField: ['id', 'name', 'price', 'cost']
         }
       });
-
+      
+      // Make the request, append any extra params in the "request" field.
       myDataSource.sendRequest({
-        request:"?output=json",
+        request:"",
         callback:myCallback
       });
 
-      // dataSource.sendRequest({
-      //   callback: {
-      //     success: function(e) {
-      //       Y.log(e);
-      //     }
-      //   }
-      // });
+      var table = new Y.DataTable({
+        columns: [
+          "id",
+          "name",
+          "price",
+          "cost"
+        ],
+        summary: "Data from a HTTP call",
+        caption: "Table with JSON data from localhost:4567"
+      });
+
+      table.plug(Y.Plugin.DataTableDataSource, { datasource: myDataSource});
+
+      table.render("#myJSONExample");
+      table.datasource.load();
+
     });
 
   </script>
+
+  <div id="myJSONExample"></div>
 
 
 
